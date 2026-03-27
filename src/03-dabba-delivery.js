@@ -77,29 +77,111 @@
 export class DabbaService {
   constructor(serviceName, area) {
     // Your code here
+    this.serviceName = serviceName;
+    this.area = area;
+    this.customers = [];
+    this._nextId = 1;
   }
 
   addCustomer(name, address, mealPreference) {
     // Your code here
+    if (!["veg", "nonveg", "jain"].includes(mealPreference)) return null;
+    for (let i = 0; i < this.customers.length; i++) {
+      if (this.customers[i].name === name) {
+        return null;
+      }
+    }
+    let ans = {
+      id: this._nextId++,
+      name,
+      address,
+      mealPreference,
+      active: true,
+      delivered: false,
+    };
+    this.customers.push(ans);
+
+    return ans;
   }
 
   removeCustomer(name) {
     // Your code here
+    const findCustomer = this.customers.find((f) => f.name === name);
+    if (!findCustomer || findCustomer.active === false) return false;
+    findCustomer.active = false;
+    return true;
   }
 
   createDeliveryBatch() {
     // Your code here
+    let delArr = [];
+    for (let i = 0; i < this.customers.length; i++) {
+      if (
+        this.customers[i].active === true &&
+        this.customers[i].delivered === false
+      ) {
+        this.customers[i].delivered = true;
+        delArr.push({
+          customerId: this.customers[i].id,
+          name: this.customers[i].name,
+          address: this.customers[i].address,
+          mealPreference: this.customers[i].mealPreference,
+          batchTime: new Date().toISOString(),
+        });
+      }
+    }
+    return delArr;
   }
 
   markDelivered(customerId) {
     // Your code here
+    for (let i = 0; i < this.customers.length; i++) {
+      if (this.customers[i].id === customerId && this.customers[i].active === true) {
+        this.customers[i].delivered = true;
+        return true; 
+      }
+    }
+    return false;
   }
 
   getDailyReport() {
     // Your code here
+    let ans = {
+      totalCustomers: 0,
+      delivered: 0,
+      pending: 0,
+      mealBreakdown: { veg: 0, nonveg: 0, jain: 0 },
+    };
+
+    for (let i = 0; i < this.customers.length; i++) {
+      
+      if (this.customers[i].active === true) {
+
+        ans.totalCustomers++; 
+
+        if (this.customers[i].mealPreference === "veg") {
+          ans.mealBreakdown.veg++;
+        } else if (this.customers[i].mealPreference === "nonveg") { // No hyphen!
+          ans.mealBreakdown.nonveg++;
+        } else if (this.customers[i].mealPreference === "jain") {
+          ans.mealBreakdown.jain++;
+        }
+
+        if (this.customers[i].delivered === true) {
+          ans.delivered++;
+        } else {
+          ans.pending++; 
+        }
+      }
+    }
+    
+    return ans;
   }
 
   getCustomer(name) {
     // Your code here
+    const findCustomer = this.customers.find((f) => f.name === name);
+    if (!findCustomer) return null;
+    return findCustomer;
   }
 }

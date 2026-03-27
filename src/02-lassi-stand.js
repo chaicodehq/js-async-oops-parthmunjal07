@@ -73,6 +73,11 @@
  */
 export function LassiStand(name, city) {
   // Your code here
+  this.name = name;
+  this.city = city;
+  this.menu = [];
+  this.orders = [];
+  this._nextOrderId = 1;
 }
 
 // Add prototype methods here:
@@ -82,6 +87,66 @@ export function LassiStand(name, city) {
 // LassiStand.prototype.getRevenue = function() { ... }
 // LassiStand.prototype.getMenu = function() { ... }
 
+LassiStand.prototype.addFlavor = function (flavor, price) {
+  if (price <= 0) return -1;
+  for (let i = 0; i < this.menu.length; i++) {
+    if (this.menu[i].flavor === flavor) return -1;
+  }
+  this.menu.push({ flavor: flavor, price: price });
+  return this.menu.length;
+};
+
+LassiStand.prototype.takeOrder = function (customerName, flavor, quantity) {
+  const menuItem = this.menu.find(item => item.flavor === flavor);
+  if (!menuItem || quantity <= 0) {
+    return -1;
+  }
+
+  const order = {
+    id: this._nextOrderId++,
+    customer: customerName,
+    flavor: flavor,
+    quantity: quantity,
+    total: menuItem.price * quantity, 
+    status: "pending",
+  };
+
+  this.orders.push(order);
+  return order.id;
+};
+
+LassiStand.prototype.completeOrder = function(orderId) {
+  const order = this.orders.find(item => item.id === orderId);
+  if (!order || order.status === "completed") {
+    return false
+  }
+  else {
+    order.status = "completed"
+    return true
+  }
+}
+
+LassiStand.prototype.getRevenue = function() {
+  let ans = 0
+  this.orders.forEach(element => {
+    if (element.status === "completed") {
+      ans += element.total
+    }
+  });
+  return ans
+
+}
+
+LassiStand.prototype.getMenu = function() {
+  const copyMenu = [...this.menu]
+  return copyMenu
+}
+
 export function isLassiStand(obj) {
   // Your code here
+  if (obj instanceof LassiStand) {
+    return true
+  } else {
+    return false
+  }
 }

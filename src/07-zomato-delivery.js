@@ -86,24 +86,82 @@
  */
 export function placeOrder(restaurant, items) {
   // Your code here
+  return new Promise((res, rej) => {
+    if (
+      typeof restaurant !== "string" ||
+      restaurant === "" ||
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
+      rej(new Error("Invalid order details!"));
+    }
+    setTimeout(() => {
+      res(
+        {
+          orderId: Math.floor(Math.random() * 10000),
+          restaurant,
+          items,
+          status: "placed",
+          timestamp: new Date().toISOString(),
+        },
+        50,
+      );
+    });
+  });
 }
 
 export function confirmOrder(order) {
   // Your code here
+  return new Promise((res, rej) => {
+    if (!order.orderId || order.status !== "placed") {
+      rej(new Error("Order cannot be confirmed!"));
+    }
+    res({ ...order, status: "confirmed", estimatedTime: 30 });
+  });
 }
 
 export function assignRider(order) {
   // Your code here
+  return new Promise((res, rej) => {
+    if (order.status === "confirmed") {
+      res({ ...order, rider: "Rahul", status: "assigned" });
+    } else {
+      rej(new Error("Order not confirmed yet!"));
+    }
+  });
 }
 
 export function deliverOrder(order) {
   // Your code here
+  return new Promise((res, rej) => {
+    if (order.status === "assigned" || order.rider) {
+      res({
+        ...order,
+        status: "delivered",
+        deliveredAt: new Date().toISOString(),
+      });
+    } else {
+      rej(new Error("No rider assigned!"));
+    }
+  });
 }
 
 export function processDelivery(restaurant, items) {
   // Your code here
+  const ans = placeOrder(restaurant, items)
+    .then((order) => confirmOrder(order))
+    .then((order) => assignRider(order))
+    .then((order) => deliverOrder(order))
+    .catch((error) => ({ error: error.message, status: "failed" }));
+
+  return ans
 }
 
 export function processMultipleOrders(orderList) {
   // Your code here
+  const promiseArr = orderList.map((order) => {
+    return processDelivery(order.restaurant, order.items);
+  });
+
+  return Promise.allSettled(promiseArr);
 }
